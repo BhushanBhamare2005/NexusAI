@@ -1,0 +1,5 @@
+[
+  {"txn_ref": "TXN100000", "merchant_id": "m_001", "customer_id": "c_001", "amount": 2500, "status": "pending", "method": "UPI"},
+  {"txn_ref": "TXN100001", "merchant_id": "m_001", "customer_id": "c_002", "amount": 500, "status": "failed", "method": "CARD"},
+  {"txn_ref": "TXN100002", "merchant_id": "m_002", "customer_id": "c_003", "amount": 1500, "status": "success", "method": "UPI"}
+]

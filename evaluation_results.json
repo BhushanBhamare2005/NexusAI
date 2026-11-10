@@ -1,0 +1,23 @@
+{
+  "intent_accuracy": 1.0,
+  "resolution_rate": 0.22,
+  "verified_outcomes": 44,
+  "total": 200,
+  "comparison": [
+    {
+      "name": "Rule-based",
+      "resolved": 42,
+      "time": 380
+    },
+    {
+      "name": "LLM Chatbot",
+      "resolved": 58,
+      "time": 210
+    },
+    {
+      "name": "NEXUS AI",
+      "resolved": 22,
+      "time": 62
+    }
+  ]
+}

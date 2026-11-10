@@ -1,0 +1,2 @@
+ALTER TABLE agent_runs
+  ADD COLUMN IF NOT EXISTS state_data JSONB NOT NULL DEFAULT '{}'::jsonb;

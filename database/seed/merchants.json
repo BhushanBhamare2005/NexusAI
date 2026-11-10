@@ -1,0 +1,7 @@
+[
+  {"id": "m_001", "name": "Store 1", "upi_id": "store1@paytm", "language": "hi"},
+  {"id": "m_002", "name": "Store 2", "upi_id": "store2@paytm", "language": "en"},
+  {"id": "m_003", "name": "Store 3", "upi_id": "store3@paytm", "language": "hi"},
+  {"id": "m_004", "name": "Store 4", "upi_id": "store4@paytm", "language": "en"},
+  {"id": "m_005", "name": "Store 5", "upi_id": "store5@paytm", "language": "hi"}
+]
