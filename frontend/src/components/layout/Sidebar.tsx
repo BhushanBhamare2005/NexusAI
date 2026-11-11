@@ -30,7 +30,9 @@ export default function Sidebar() {
   const { user } = useAuth();
   const roleLevel = user?.role === "manager" ? 2 : user?.role === "senior_agent" ? 1 : 0;
   const visibleLinks = user?.role.startsWith("demo_")
-    ? links.filter((link) => link.to === "/demo")
+    ? links.filter((link) =>
+        ["/demo", "/demo/ai-teammate"].includes(link.to),
+      )
     : links.filter(
         (link) => link.to !== "/demo" && roleLevel >= link.minimumRole,
       );

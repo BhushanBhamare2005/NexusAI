@@ -17,6 +17,7 @@ import { ToastHost } from "./components/ui/toast";
 import { useAuth } from "./auth/AuthProvider";
 import LoginPage from "./pages/LoginPage";
 import DemoDashboardPage from "./pages/DemoDashboardPage";
+import DemoAgentWorkspacePage from "./pages/DemoAgentWorkspacePage";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "./services/api";
 import type { ReactNode } from "react";
@@ -44,7 +45,8 @@ function AuthenticatedApp() {
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
-  if (user.role.startsWith("demo_") && location.pathname !== "/demo") {
+  const demoRoutes = ["/demo", "/demo/ai-teammate"];
+  if (user.role.startsWith("demo_") && !demoRoutes.includes(location.pathname)) {
     return <Navigate to="/demo" replace />;
   }
 
@@ -58,6 +60,16 @@ function AuthenticatedApp() {
               roles={["demo_manager", "demo_senior_agent", "demo_agent"]}
             >
               <DemoDashboardPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/demo/ai-teammate"
+          element={
+            <RequireRole
+              roles={["demo_manager", "demo_senior_agent", "demo_agent"]}
+            >
+              <DemoAgentWorkspacePage />
             </RequireRole>
           }
         />
