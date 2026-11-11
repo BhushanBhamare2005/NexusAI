@@ -11,7 +11,13 @@ import {
 import { useAuth } from "../../auth/AuthProvider";
 
 const links = [
-  { to: "/", label: "Command Center", icon: LayoutDashboard, minimumRole: 0 },
+  { to: "/", label: "My Dashboard", icon: LayoutDashboard, minimumRole: 0 },
+  {
+    to: "/command-center",
+    label: "Command Center",
+    icon: LayoutDashboard,
+    minimumRole: 0,
+  },
   { to: "/agent", label: "AI Teammate", icon: Bot, minimumRole: 0 },
   { to: "/transactions", label: "Transactions", icon: Search, minimumRole: 0 },
   { to: "/trustguard", label: "TrustGuard", icon: ShieldCheck, minimumRole: 1 },
@@ -55,7 +61,9 @@ export default function Sidebar() {
             }
           >
             <Icon size={16} />
-            {label}
+            {to === "/trustguard" && user?.role === "manager"
+              ? "Manager Dashboard"
+              : label}
           </NavLink>
         ))}
       </nav>

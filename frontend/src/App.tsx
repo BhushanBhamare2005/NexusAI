@@ -17,7 +17,14 @@ import { ToastHost } from "./components/ui/toast";
 import { useAuth } from "./auth/AuthProvider";
 import LoginPage from "./pages/LoginPage";
 import DemoDashboardPage from "./pages/DemoDashboardPage";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "./services/api";
 import type { ReactNode } from "react";
+
+interface AuthorizedDashboard {
+  role: string;
+  path: string;
+}
 
 export default function App() {
   return (
@@ -54,7 +61,8 @@ function AuthenticatedApp() {
             </RequireRole>
           }
         />
-        <Route path="/" element={<DashboardPage />} />
+        <Route path="/" element={<AuthorizedDashboardRedirect />} />
+        <Route path="/command-center" element={<DashboardPage />} />
         <Route
           path="/agent"
           element={
@@ -100,6 +108,38 @@ function AuthenticatedApp() {
       <ToastHost />
     </AppShell>
   );
+}
+
+function AuthorizedDashboardRedirect() {
+  const { user } = useAuth();
+  const dashboards = useQuery({
+    queryKey: ["authorized-dashboards", user?.role],
+    queryFn: async () =>
+      (await api.get<AuthorizedDashboard[]>("/auth/dashboards")).data,
+    enabled: Boolean(user),
+  });
+
+  if (dashboards.isLoading) {
+    return <div className="p-8 text-nexus-muted">Opening your dashboard…</div>;
+  }
+  if (dashboards.isError) {
+    return (
+      <div role="alert" className="p-8 text-sm text-nexus-danger">
+        Could not verify your dashboard: {dashboards.error.message}
+      </div>
+    );
+  }
+
+  const destination = dashboards.data?.[0]?.path;
+  if (!destination || destination === "/") {
+    return (
+      <div role="alert" className="p-8 text-sm text-nexus-danger">
+        No dashboard is assigned to this account. Contact an administrator.
+      </div>
+    );
+  }
+
+  return <Navigate to={destination} replace />;
 }
 
 function RequireRole({
