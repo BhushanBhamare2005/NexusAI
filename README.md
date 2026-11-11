@@ -38,6 +38,18 @@ create agent accounts from TrustGuard.
 
 API docs: http://localhost:8000/docs
 
+### Vercel deployment
+
+The frontend and FastAPI backend are deployed as separate Vercel projects. Set
+`DATABASE_URL`, `JWT_SECRET`, `NEXUS_BOOTSTRAP_USERNAME`,
+`NEXUS_BOOTSTRAP_PASSWORD`, and `CORS_ORIGINS` in the backend project's
+Production environment. Set `VITE_API_URL` in the frontend project's Production
+environment to the backend deployment URL, then redeploy both projects.
+`GEMINI_API_KEY` is optional; without it, the rule-based fallback is used.
+The backend runtime dependencies are in `backend/requirements.txt`;
+`requirements-dev.txt` adds test tools, and `requirements-optional.txt` contains
+the heavyweight optional analytics and embedding packages.
+
 ### Optional integrations
 
 - **Gemini:** set `GEMINI_API_KEY` to enable LLM intent/diagnosis/responses;
