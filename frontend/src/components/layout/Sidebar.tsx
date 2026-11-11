@@ -19,6 +19,12 @@ const links = [
     minimumRole: 0,
   },
   { to: "/agent", label: "AI Teammate", icon: Bot, minimumRole: 0 },
+  {
+    to: "/demo/ai-teammate",
+    label: "AI Teammate",
+    icon: Bot,
+    minimumRole: 0,
+  },
   { to: "/transactions", label: "Transactions", icon: Search, minimumRole: 0 },
   { to: "/trustguard", label: "TrustGuard", icon: ShieldCheck, minimumRole: 1 },
   { to: "/revenue", label: "Revenue Rescue", icon: TrendingUp, minimumRole: 1 },
@@ -34,7 +40,9 @@ export default function Sidebar() {
         ["/demo", "/demo/ai-teammate"].includes(link.to),
       )
     : links.filter(
-        (link) => link.to !== "/demo" && roleLevel >= link.minimumRole,
+        (link) =>
+          !["/demo", "/demo/ai-teammate"].includes(link.to) &&
+          roleLevel >= link.minimumRole,
       );
 
   return (
@@ -53,7 +61,7 @@ export default function Sidebar() {
           <NavLink
             key={to}
             to={to}
-            end={to === "/"}
+            end={to === "/" || to === "/demo"}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition ${
                 isActive
