@@ -1,15 +1,64 @@
 import { FormEvent, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../services/api";
 import { Button } from "../ui/button";
 import { Card, CardTitle } from "../ui/card";
 
+type Role = "manager" | "senior_agent" | "agent";
+
+interface WorkspaceUser {
+  id: string;
+  username: string;
+  role: Role;
+  is_active: boolean;
+  created_at: string;
+}
+
+interface RoleHistoryEntry {
+  id: string;
+  target_username: string;
+  actor_username: string;
+  action: string;
+  previous_role: Role | null;
+  new_role: Role | null;
+  previous_active: boolean | null;
+  new_active: boolean | null;
+  created_at: string;
+}
+
 export default function AccountManagement() {
+  const queryClient = useQueryClient();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("agent");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const users = useQuery({
+    queryKey: ["workspace-users"],
+    queryFn: async () => (await api.get<WorkspaceUser[]>("/auth/users")).data,
+  });
+  const history = useQuery({
+    queryKey: ["role-assignment-history"],
+    queryFn: async () =>
+      (await api.get<RoleHistoryEntry[]>("/auth/role-history")).data,
+  });
+  const updateUser = useMutation({
+    mutationFn: async ({
+      userId,
+      update,
+    }: {
+      userId: string;
+      update: { role?: Role; is_active?: boolean };
+    }) => api.patch(`/auth/users/${userId}`, update),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["workspace-users"] }),
+        queryClient.invalidateQueries({ queryKey: ["role-assignment-history"] }),
+        queryClient.invalidateQueries({ queryKey: ["auth-user"] }),
+      ]);
+    },
+  });
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -21,6 +70,10 @@ export default function AccountManagement() {
       setMessage(`Created ${role.replace("_", " ")} account "${username}".`);
       setUsername("");
       setPassword("");
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["workspace-users"] }),
+        queryClient.invalidateQueries({ queryKey: ["role-assignment-history"] }),
+      ]);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Account creation failed.");
     } finally {
@@ -77,6 +130,106 @@ export default function AccountManagement() {
           {error}
         </p>
       )}
+      <div className="mt-6">
+        <CardTitle>Workspace users and roles</CardTitle>
+        {users.isLoading && (
+          <p className="text-sm text-nexus-muted">Loading users…</p>
+        )}
+        {users.isError && (
+          <p role="alert" className="text-sm text-nexus-danger">
+            Could not load users: {users.error.message}
+          </p>
+        )}
+        {updateUser.isError && (
+          <p role="alert" className="mb-2 text-sm text-nexus-danger">
+            Could not update account: {updateUser.error.message}
+          </p>
+        )}
+        <div className="space-y-2">
+          {users.data?.map((user) => (
+            <div
+              key={user.id}
+              className="flex flex-wrap items-center gap-3 rounded-lg border border-nexus-border p-3"
+            >
+              <div className="min-w-[150px] flex-1">
+                <div className="text-sm text-white">{user.username}</div>
+                <div className="text-xs text-nexus-muted">
+                  {user.id} · {user.is_active ? "Active" : "Inactive"}
+                </div>
+              </div>
+              <label className="text-xs text-nexus-muted">
+                Role
+                <select
+                  aria-label={`Role for ${user.username}`}
+                  value={user.role}
+                  disabled={updateUser.isPending}
+                  onChange={(event) =>
+                    updateUser.mutate({
+                      userId: user.id,
+                      update: { role: event.target.value as Role },
+                    })
+                  }
+                  className="ml-2 rounded-lg border border-nexus-border bg-nexus-bg px-2 py-2 text-sm text-white"
+                >
+                  <option value="manager">Manager</option>
+                  <option value="senior_agent">Senior Agent</option>
+                  <option value="agent">Agent</option>
+                </select>
+              </label>
+              <Button
+                variant={user.is_active ? "danger" : "outline"}
+                disabled={updateUser.isPending}
+                onClick={() =>
+                  updateUser.mutate({
+                    userId: user.id,
+                    update: { is_active: !user.is_active },
+                  })
+                }
+              >
+                {user.is_active ? "Deactivate" : "Activate"}
+              </Button>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="mt-6">
+        <CardTitle>Role assignment history</CardTitle>
+        {history.isLoading && (
+          <p className="text-sm text-nexus-muted">Loading history…</p>
+        )}
+        {history.isError && (
+          <p role="alert" className="text-sm text-nexus-danger">
+            Could not load role history: {history.error.message}
+          </p>
+        )}
+        <div className="max-h-64 space-y-2 overflow-y-auto">
+          {history.data?.map((entry) => (
+            <div
+              key={entry.id}
+              className="rounded-lg border border-nexus-border p-3 text-xs text-nexus-muted"
+            >
+              <div className="text-slate-200">
+                {entry.action.replaceAll("_", " ")} · {entry.target_username}
+              </div>
+              <div>
+                By {entry.actor_username}
+                {entry.previous_role && entry.new_role
+                  ? ` · ${entry.previous_role.replace("_", " ")} → ${entry.new_role.replace("_", " ")}`
+                  : entry.new_role
+                    ? ` · assigned ${entry.new_role.replace("_", " ")}`
+                    : ""}
+                {entry.previous_active !== null && entry.new_active !== null
+                  ? ` · ${entry.previous_active ? "active" : "inactive"} → ${entry.new_active ? "active" : "inactive"}`
+                  : ""}
+              </div>
+              <div>{new Date(entry.created_at).toLocaleString()}</div>
+            </div>
+          ))}
+          {history.data?.length === 0 && (
+            <p className="text-sm text-nexus-muted">No role changes recorded.</p>
+          )}
+        </div>
+      </div>
     </Card>
   );
 }

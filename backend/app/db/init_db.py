@@ -6,6 +6,7 @@ from app.db.session import engine
 from app.models import (  # noqa: F401
     merchant, customer, transaction, refund, ticket,
     approval, agent_run, audit_event, recovery_opportunity, user, notification_log,
+    role_assignment_history,
 )
 
 async def init_db() -> None:

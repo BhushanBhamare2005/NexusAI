@@ -1,5 +1,6 @@
 import {
   BrowserRouter,
+  Link,
   Navigate,
   Route,
   Routes,
@@ -84,6 +85,25 @@ function RequireRole({
   return user && roles.includes(user.role) ? (
     children
   ) : (
-    <Navigate to="/" replace />
+    <AccessDenied />
+  );
+}
+
+function AccessDenied() {
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-nexus-bg p-4">
+      <div className="max-w-md rounded-xl border border-nexus-border bg-nexus-panel p-6 text-center">
+        <h1 className="text-xl font-semibold text-white">Access denied</h1>
+        <p className="mt-2 text-sm text-nexus-muted">
+          Your assigned role does not allow access to this dashboard.
+        </p>
+        <Link
+          to="/"
+          className="mt-4 inline-block rounded-lg bg-nexus-accent px-4 py-2 text-sm font-medium text-black"
+        >
+          Return to Command Center
+        </Link>
+      </div>
+    </main>
   );
 }
