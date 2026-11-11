@@ -8,7 +8,15 @@ from app.db.session import AsyncSessionLocal
 from app.models.role_assignment_history import RoleAssignmentHistory
 from app.models.user import User
 
-SUPPORTED_ROLES = {"agent", "senior_agent", "manager"}
+SUPPORTED_ROLES = {
+    "agent",
+    "senior_agent",
+    "manager",
+    "demo_manager",
+    "demo_senior_agent",
+    "demo_agent",
+}
+DEMO_ROLES = {"demo_manager", "demo_senior_agent", "demo_agent"}
 
 
 def _record_assignment(
@@ -86,6 +94,7 @@ async def create_user(
             username=username,
             password_hash=hash_password(password),
             role=role,
+            is_demo=role in DEMO_ROLES,
         )
         db.add(user)
         db.add(
@@ -137,6 +146,8 @@ async def update_user(
 
             next_role = role if role is not None else user.role
             next_active = is_active if is_active is not None else user.is_active
+            if user.is_demo != (next_role in DEMO_ROLES):
+                raise ValueError("demo_account_role_is_restricted")
             removes_manager = (
                 user.role == "manager"
                 and user.is_active
@@ -195,6 +206,7 @@ async def ensure_bootstrap_admin(username: str, password: str) -> None:
                 username=username,
                 password_hash=hash_password(password),
                 role="manager",
+                is_demo=False,
             )
         )
         await db.commit()

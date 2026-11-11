@@ -16,6 +16,7 @@ import AuditPage from "./pages/AuditPage";
 import { ToastHost } from "./components/ui/toast";
 import { useAuth } from "./auth/AuthProvider";
 import LoginPage from "./pages/LoginPage";
+import DemoDashboardPage from "./pages/DemoDashboardPage";
 import type { ReactNode } from "react";
 
 export default function App() {
@@ -36,13 +37,40 @@ function AuthenticatedApp() {
   if (!user) {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
+  if (user.role.startsWith("demo_") && location.pathname !== "/demo") {
+    return <Navigate to="/demo" replace />;
+  }
 
   return (
     <AppShell>
       <Routes>
+        <Route
+          path="/demo"
+          element={
+            <RequireRole
+              roles={["demo_manager", "demo_senior_agent", "demo_agent"]}
+            >
+              <DemoDashboardPage />
+            </RequireRole>
+          }
+        />
         <Route path="/" element={<DashboardPage />} />
-        <Route path="/agent" element={<AgentWorkspacePage />} />
-        <Route path="/transactions" element={<TransactionsPage />} />
+        <Route
+          path="/agent"
+          element={
+            <RequireRole roles={["agent", "senior_agent", "manager"]}>
+              <AgentWorkspacePage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/transactions"
+          element={
+            <RequireRole roles={["agent", "senior_agent", "manager"]}>
+              <TransactionsPage />
+            </RequireRole>
+          }
+        />
         <Route
           path="/trustguard"
           element={

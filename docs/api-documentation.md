@@ -9,6 +9,7 @@
 - `POST /api/v1/auth/users` → create an account (manager only)
 - `PATCH /api/v1/auth/users/{user_id}` → change role or active status (manager only)
 - `GET /api/v1/auth/role-history` → list account creation and role/active-status history (manager only)
+- `GET /api/v1/demo/overview` → synthetic demo data (demo roles only)
 
 Role and active-status changes are stored in the production `users` table. The
 backend checks the active database account against the JWT on each protected
@@ -16,6 +17,11 @@ request, so changing a role or deactivating an account invalidates its old
 token. The API prevents removing the last active manager. Role assignment
 history is stored separately in `role_assignment_history`; no password hashes
 or secrets are included in these records.
+
+Public demo accounts use the `demo_manager`, `demo_senior_agent`, and
+`demo_agent` roles. These roles can only read the synthetic `/demo/overview`
+response; they cannot access operational endpoints or production records.
+Accounts marked `is_demo` cannot be promoted to an operational role.
 
 ## Agent
 - `POST /api/v1/agent/run` → run NEXUS on a message

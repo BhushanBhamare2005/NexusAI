@@ -50,3 +50,16 @@ async def init_db() -> None:
             await conn.exec_driver_sql(
                 "ALTER TABLE notification_logs ADD COLUMN accepted BOOLEAN NOT NULL DEFAULT FALSE"
             )
+        user_columns = await conn.run_sync(
+            lambda sync_conn: {
+                column["name"]
+                for column in inspect(sync_conn).get_columns("users")
+            }
+        )
+        if "is_demo" not in user_columns:
+            await conn.exec_driver_sql(
+                "ALTER TABLE users ADD COLUMN is_demo BOOLEAN NOT NULL DEFAULT FALSE"
+            )
+        await conn.exec_driver_sql(
+            "CREATE INDEX IF NOT EXISTS idx_users_is_demo ON users (is_demo)"
+        )

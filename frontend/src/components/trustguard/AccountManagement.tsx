@@ -4,13 +4,20 @@ import { api } from "../../services/api";
 import { Button } from "../ui/button";
 import { Card, CardTitle } from "../ui/card";
 
-type Role = "manager" | "senior_agent" | "agent";
+type Role =
+  | "manager"
+  | "senior_agent"
+  | "agent"
+  | "demo_manager"
+  | "demo_senior_agent"
+  | "demo_agent";
 
 interface WorkspaceUser {
   id: string;
   username: string;
   role: Role;
   is_active: boolean;
+  is_demo: boolean;
   created_at: string;
 }
 
@@ -120,6 +127,9 @@ export default function AccountManagement() {
             <option value="agent">Agent</option>
             <option value="senior_agent">Senior agent</option>
             <option value="manager">Manager</option>
+            <option value="demo_agent">Demo agent (restricted)</option>
+            <option value="demo_senior_agent">Demo senior agent (restricted)</option>
+            <option value="demo_manager">Demo manager (restricted)</option>
           </select>
           <Button disabled={submitting}>Create</Button>
         </div>
@@ -155,6 +165,7 @@ export default function AccountManagement() {
                 <div className="text-sm text-white">{user.username}</div>
                 <div className="text-xs text-nexus-muted">
                   {user.id} · {user.is_active ? "Active" : "Inactive"}
+                  {user.is_demo ? " · Isolated demo account" : ""}
                 </div>
               </div>
               <label className="text-xs text-nexus-muted">
@@ -174,6 +185,13 @@ export default function AccountManagement() {
                   <option value="manager">Manager</option>
                   <option value="senior_agent">Senior Agent</option>
                   <option value="agent">Agent</option>
+                  {user.is_demo && (
+                    <>
+                      <option value="demo_manager">Demo Manager</option>
+                      <option value="demo_senior_agent">Demo Senior Agent</option>
+                      <option value="demo_agent">Demo Agent</option>
+                    </>
+                  )}
                 </select>
               </label>
               <Button

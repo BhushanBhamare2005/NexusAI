@@ -138,12 +138,61 @@ async def test_role_management_and_dashboard_access_are_server_authorized(
                 for entry in response.json()
             )
 
+            response = await client.post(
+                "/api/v1/auth/users",
+                json={
+                    "username": "demo-manager",
+                    "password": "Demo-Manager-Password-123",
+                    "role": "demo_manager",
+                },
+            )
+            assert response.status_code == 201
+            assert response.json()["is_demo"] is True
+            demo_user_id = response.json()["id"]
+
+            response = await client.patch(
+                f"/api/v1/auth/users/{demo_user_id}",
+                json={"role": "manager"},
+            )
+            assert response.status_code == 409
+            assert response.json()["detail"] == "demo_account_role_is_restricted"
+
             response = await client.patch(
                 "/api/v1/auth/users/manager-id",
                 json={"is_active": False},
             )
             assert response.status_code == 409
             assert response.json()["detail"] == "cannot_remove_last_active_manager"
+
+        app.dependency_overrides[current_user] = lambda: {
+            "sub": "demo-manager",
+            "role": "demo_manager",
+        }
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            response = await client.get("/api/v1/auth/dashboards")
+            assert response.status_code == 200
+            assert response.json() == [
+                {"role": "demo_manager", "path": "/demo"}
+            ]
+
+            response = await client.get("/api/v1/demo/overview")
+            assert response.status_code == 200
+            assert response.json()["label"] == "Synthetic demonstration data"
+            assert all(
+                item["id"].startswith("DEMO-")
+                for item in response.json()["recent_cases"]
+            )
+
+            response = await client.get("/api/v1/auth/users")
+            assert response.status_code == 403
+
+            response = await client.get("/api/v1/auth/dashboards/manager")
+            assert response.status_code == 403
+
+            response = await client.get("/api/v1/transactions")
+            assert response.status_code == 403
 
         app.dependency_overrides[current_user] = lambda: {
             "sub": "senior",
@@ -189,7 +238,7 @@ async def test_role_management_and_dashboard_access_are_server_authorized(
             history = (
                 await db.execute(select(RoleAssignmentHistory))
             ).scalars().all()
-            assert len(history) == 3
+            assert len(history) == 4
     finally:
         app.dependency_overrides.pop(current_user, None)
         await engine.dispose()

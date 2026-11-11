@@ -17,7 +17,14 @@ class LoginRequest(BaseModel):
 class UserCreateRequest(BaseModel):
     username: str = Field(min_length=3, max_length=80, pattern=r"^[a-zA-Z0-9_.-]+$")
     password: str = Field(min_length=12, max_length=72)
-    role: Literal["agent", "senior_agent", "manager"]
+    role: Literal[
+        "agent",
+        "senior_agent",
+        "manager",
+        "demo_manager",
+        "demo_senior_agent",
+        "demo_agent",
+    ]
 
     @field_validator("password")
     @classmethod
@@ -28,7 +35,14 @@ class UserCreateRequest(BaseModel):
 
 
 class UserUpdateRequest(BaseModel):
-    role: Literal["agent", "senior_agent", "manager"] | None = None
+    role: Literal[
+        "agent",
+        "senior_agent",
+        "manager",
+        "demo_manager",
+        "demo_senior_agent",
+        "demo_agent",
+    ] | None = None
     is_active: bool | None = None
 
     @model_validator(mode="after")
@@ -44,6 +58,7 @@ def _user_payload(user):
         "username": user.username,
         "role": user.role,
         "is_active": user.is_active,
+        "is_demo": user.is_demo,
         "created_at": user.created_at,
     }
 

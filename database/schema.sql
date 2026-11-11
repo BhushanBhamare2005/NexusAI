@@ -126,6 +126,22 @@ CREATE TABLE IF NOT EXISTS notification_logs (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS users (
+  id VARCHAR PRIMARY KEY,
+  username VARCHAR NOT NULL UNIQUE,
+  password_hash VARCHAR NOT NULL,
+  role VARCHAR NOT NULL DEFAULT 'agent',
+  is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  is_demo BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_users_username ON users (username);
+
+ALTER TABLE users
+  ADD COLUMN IF NOT EXISTS is_demo BOOLEAN NOT NULL DEFAULT FALSE;
+CREATE INDEX IF NOT EXISTS idx_users_is_demo ON users (is_demo);
+
 CREATE TABLE IF NOT EXISTS role_assignment_history (
   id VARCHAR PRIMARY KEY,
   target_user_id VARCHAR NOT NULL,

@@ -10,13 +10,19 @@ import { api } from "../services/api";
 
 export interface AuthUser {
   username: string;
-  role: "agent" | "senior_agent" | "manager";
+  role:
+    | "agent"
+    | "senior_agent"
+    | "manager"
+    | "demo_manager"
+    | "demo_senior_agent"
+    | "demo_agent";
 }
 
 interface AuthContextValue {
   user: AuthUser | null;
   loading: boolean;
-  signIn: (username: string, password: string) => Promise<void>;
+  signIn: (username: string, password: string) => Promise<AuthUser>;
   signOut: () => void;
 }
 
@@ -59,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         );
         localStorage.setItem("nexus-token", data.token);
         setUser(data.user);
+        return data.user;
       },
       signOut() {
         localStorage.removeItem("nexus-token");

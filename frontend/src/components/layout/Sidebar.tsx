@@ -6,6 +6,7 @@ import {
   ShieldCheck,
   TrendingUp,
   FileCheck,
+  FlaskConical,
 } from "lucide-react";
 import { useAuth } from "../../auth/AuthProvider";
 
@@ -16,12 +17,17 @@ const links = [
   { to: "/trustguard", label: "TrustGuard", icon: ShieldCheck, minimumRole: 1 },
   { to: "/revenue", label: "Revenue Rescue", icon: TrendingUp, minimumRole: 1 },
   { to: "/audit", label: "Evidence Center", icon: FileCheck, minimumRole: 1 },
+  { to: "/demo", label: "Demo Sandbox", icon: FlaskConical, minimumRole: 0 },
 ];
 
 export default function Sidebar() {
   const { user } = useAuth();
   const roleLevel = user?.role === "manager" ? 2 : user?.role === "senior_agent" ? 1 : 0;
-  const visibleLinks = links.filter((link) => roleLevel >= link.minimumRole);
+  const visibleLinks = user?.role.startsWith("demo_")
+    ? links.filter((link) => link.to === "/demo")
+    : links.filter(
+        (link) => link.to !== "/demo" && roleLevel >= link.minimumRole,
+      );
 
   return (
     <aside className="flex w-60 flex-col border-r border-nexus-border bg-nexus-panel">
