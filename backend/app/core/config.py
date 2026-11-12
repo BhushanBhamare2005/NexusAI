@@ -7,6 +7,7 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = "sqlite+aiosqlite:///./nexus.db"
     GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-3.6-flash"
     OPENAI_API_KEY: str = ""
     JWT_SECRET: str = secrets.token_urlsafe(32)
     JWT_ALGORITHM: str = "HS256"

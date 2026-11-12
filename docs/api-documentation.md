@@ -10,6 +10,7 @@
 - `PATCH /api/v1/auth/users/{user_id}` → change role or active status (manager only)
 - `GET /api/v1/auth/role-history` → list account creation and role/active-status history (manager only)
 - `GET /api/v1/demo/overview` → synthetic demo data (demo roles only)
+- `POST /api/v1/demo/ai-teammate` → Gemini-generated general guidance (demo roles only; no operational tools)
 
 Role and active-status changes are stored in the production `users` table. The
 backend checks the active database account against the JWT on each protected
@@ -19,9 +20,12 @@ history is stored separately in `role_assignment_history`; no password hashes
 or secrets are included in these records.
 
 Public demo accounts use the `demo_manager`, `demo_senior_agent`, and
-`demo_agent` roles. These roles can only read the synthetic `/demo/overview`
-response; they cannot access operational endpoints or production records.
-Accounts marked `is_demo` cannot be promoted to an operational role.
+`demo_agent` roles. These roles can read synthetic `/demo/overview` data and
+ask `/demo/ai-teammate` general questions answered by Gemini. The AI endpoint
+does not access operational tools or production records and cannot perform
+actions. Configure `GEMINI_API_KEY` in the backend environment. Demo roles
+cannot access other operational endpoints or production records. Accounts
+marked `is_demo` cannot be promoted to an operational role.
 
 ## Agent
 - `POST /api/v1/agent/run` → run NEXUS on a message
